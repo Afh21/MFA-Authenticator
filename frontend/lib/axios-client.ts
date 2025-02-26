@@ -1,0 +1,24 @@
+import axios, { AxiosRequestConfig } from "axios";
+
+const options: AxiosRequestConfig = {
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  withCredentials: true,
+  timeout: 10000,
+};
+
+const API = axios.create(options);
+
+API.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const { data, status } = error.response;
+
+    // Refresh token
+    if (data === "Unauthorized" && status === 401) {
+    }
+
+    return Promise.reject({ ...data });
+  }
+);
+
+export default API;
