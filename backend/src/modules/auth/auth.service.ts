@@ -105,7 +105,7 @@ export class AuthService {
     if (user.userPreferences.enable2FA) {
       return {
         user: null,
-        mfaRequired: false,
+        mfaRequired: true,
         accessToken: "",
         refreshToken: "",
       };

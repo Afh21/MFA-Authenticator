@@ -14,22 +14,37 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, MailCheckIcon } from "lucide-react";
-import Logo from "@/components/logo";
+import { ArrowRight, Loader, MailCheckIcon } from "lucide-react";
+import Logo from "@/components/Logo";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "@/hooks/use-toast";
+import { registerMutation } from "@/lib/api";
 
 export default function SignUp() {
-  const [isSubmited] = useState(false);
-  const formSchema = z.object({
-    name: z.string().trim().min(1, {
-      message: "Name is required",
-    }),
-    email: z.string().trim().email().min(1, {
-      message: "Email is required",
-    }),
-    password: z.string().trim().min(1, {
-      message: "Password is required",
-    }),
+  const [isSubmited, setIsSubmited] = useState(false);
+  const { mutate, isPending } = useMutation({
+    mutationFn: registerMutation,
   });
+
+  const formSchema = z
+    .object({
+      name: z.string().trim().min(1, {
+        message: "Name is required",
+      }),
+      email: z.string().trim().email().min(1, {
+        message: "Email is required",
+      }),
+      password: z.string().trim().min(1, {
+        message: "Password is required",
+      }),
+      confirmPassword: z.string().trim().min(1, {
+        message: "Confirm password is required",
+      }),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: "Passwords do not match",
+      path: ["confirmPassword"],
+    });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -37,10 +52,25 @@ export default function SignUp() {
       name: "",
       email: "",
       password: "",
+      confirmPassword: "",
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {};
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    mutate(values, {
+      onSuccess(data, variables, context) {
+        setIsSubmited(true);
+      },
+      onError(error) {
+        console.log("error", error);
+        toast({
+          title: "Error",
+          description: error?.message,
+          variant: "destructive",
+        });
+      },
+    });
+  };
 
   return (
     <>
@@ -89,6 +119,7 @@ export default function SignUp() {
                         </FormLabel>
                         <FormControl>
                           <Input
+                            autoComplete="off"
                             placeholder="subscribeto@channel.com"
                             {...field}
                           />
@@ -108,7 +139,32 @@ export default function SignUp() {
                           Password
                         </FormLabel>
                         <FormControl>
-                          <Input placeholder="••••••••••••" {...field} />
+                          <Input
+                            type="password"
+                            placeholder="••••••••••••"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="mb-4">
+                  <FormField
+                    control={form.control}
+                    name="confirmPassword"
+                    render={({ field }: { field: any }) => (
+                      <FormItem>
+                        <FormLabel className="dark:text-[#f1f7feb5] text-sm">
+                          Confirm Password
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="password"
+                            placeholder="••••••••••••"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -116,10 +172,12 @@ export default function SignUp() {
                   />
                 </div>
                 <Button
-                  className="w-full text-[15px] h-[40px] !bg-blue-500 text-white font-semibold"
+                  className="w-full text-[15px] h-[40px] !bg-primary text-white font-semibold"
                   type="submit"
+                  disabled={isPending}
                 >
-                  Create account
+                  Create account{" "}
+                  {isPending && <Loader className="animate-spin" />}
                   <ArrowRight />
                 </Button>
 
@@ -166,7 +224,7 @@ export default function SignUp() {
               Check your email
             </h2>
             <p className="mb-2 text-center text-sm text-muted-foreground dark:text-[#f1f7feb5] font-normal">
-              We just sent a verification link to natesiv517@edectus.com.
+              We just sent a verification link to {form.getValues("email")}
             </p>
             <Link href="/">
               <Button className="h-[40px]">

@@ -1,3 +1,12 @@
-export default function AuthForgotPassword({}) {
-  return <div>Forgot password!</div>;
+import React, { Suspense } from "react";
+import ForgotPassword from "./_forgotpassword";
+
+function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ForgotPassword />
+    </Suspense>
+  );
 }
+
+export default Page;

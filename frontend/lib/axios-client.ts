@@ -11,10 +11,11 @@ const API = axios.create(options);
 API.interceptors.response.use(
   (response) => response,
   (error) => {
-    const { data, status } = error.response;
+    const { data = {}, status = "" } = error?.response;
 
     // Refresh token
     if (data === "Unauthorized" && status === 401) {
+      console.log("Unauthorized");
     }
 
     return Promise.reject({ ...data });

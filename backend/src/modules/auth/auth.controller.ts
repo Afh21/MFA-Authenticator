@@ -70,7 +70,8 @@ export class AuthController {
         .status(HTTPSTATUS.CREATED)
         .json({
           message: "User logged in successfully",
-          data: { user, accessToken, mfaRequired },
+          mfaRequired,
+          user,
         });
     }
   );
@@ -105,7 +106,7 @@ export class AuthController {
 
   public verifyEmail = asyncHandler(
     async (req: Request, res: Response): Promise<any> => {
-      const { code } = verificationEmailSchema.parse(req.body.email);
+      const { code } = verificationEmailSchema.parse(req.body);
 
       await this.authService.verifyEmail(code);
 
